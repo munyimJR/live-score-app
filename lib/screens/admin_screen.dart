@@ -1005,7 +1005,7 @@ class _LiveScoringPanel extends StatelessWidget {
 
           // ── Ball Buttons ────────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
+            padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final buttonWidth =
@@ -1045,27 +1045,6 @@ class _LiveScoringPanel extends StatelessWidget {
               },
             ),
           ),
-
-          if (recentBalls.length >= 6)
-            Padding(
-              padding: const EdgeInsets.only(left: 14, right: 14, bottom: 10),
-              child: Row(
-                children: [
-                  const Icon(Icons.history_rounded,
-                      size: 13, color: AppColors.accentGreen),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      '${recentBalls.length} balls total • Last 5 shown (slot 6 ready)',
-                      style: const TextStyle(
-                          color: AppColors.textMuted, fontSize: 11),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     );
