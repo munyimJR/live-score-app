@@ -40,21 +40,21 @@ class MatchCard extends StatelessWidget {
     final List<String> balls = match.recentBalls;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 18),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: const Color(0xFF141418),
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isLive
               ? AppColors.liveRed.withValues(alpha: 0.35)
               : const Color(0xFF26262F),
-          width: 1.2,
+          width: 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.45),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -62,9 +62,9 @@ class MatchCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(16),
           child: Padding(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Column(
               children: [
                 // Header: Status chip & Match date/time
@@ -73,18 +73,19 @@ class MatchCard extends StatelessWidget {
                   children: [
                     StatusChip(status: match.status),
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(
                           Icons.calendar_today_outlined,
-                          size: 13,
+                          size: 11.5,
                           color: AppColors.textSecondary,
                         ),
-                        const SizedBox(width: 5),
+                        const SizedBox(width: 4),
                         Text(
                           DateFormatter.formatCardDate(match.matchDate),
                           style: const TextStyle(
                             color: AppColors.textSecondary,
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -92,17 +93,17 @@ class MatchCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
 
                 // Main Match Row: [Team A]  [Score & Overs]  [Team B]
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // Team A Logo + Name
                     TeamBadge(
                       teamName: match.teamA,
                       logoUrl: match.teamALogoUrl,
-                      logoSize: 52,
+                      logoSize: 40,
                     ),
 
                     // Center Primary Score & Overs
@@ -110,49 +111,76 @@ class MatchCard extends StatelessWidget {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const SizedBox(height: 4),
-                          Text(
-                            isUpcoming ? 'VS' : scoreAFormatted,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 32,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.8,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          if (!isUpcoming)
-                            RichText(
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: '$oversA ',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 13.5,
-                                    ),
-                                  ),
-                                  const TextSpan(
-                                    text: 'Overs',
-                                    style: TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 13.5,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
+                          if (isUpcoming) ...[
+                            const Text(
+                              'VS',
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.0,
                               ),
-                            )
-                          else
+                            ),
+                            const SizedBox(height: 2),
                             const Text(
                               'Starts Soon',
                               style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 13,
+                                color: AppColors.textMuted,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
+                          ] else ...[
+                            Text(
+                              scoreAFormatted,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 26,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              '$oversA Overs',
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1B1D26),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: const Color(0xFF282A38),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Text(
+                                (match.scoreB.trim() == '0/0' &&
+                                        (match.oversB.trim() == '0.0' ||
+                                            match.oversB.isEmpty))
+                                    ? '${match.teamB}: Yet to bat'
+                                    : '$scoreBFormatted  •  $oversB ov',
+                                style: TextStyle(
+                                  color: (match.scoreB.trim() == '0/0' &&
+                                          (match.oversB.trim() == '0.0' ||
+                                              match.oversB.isEmpty))
+                                      ? AppColors.textMuted
+                                      : const Color(0xFF00E676),
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -161,40 +189,21 @@ class MatchCard extends StatelessWidget {
                     TeamBadge(
                       teamName: match.teamB,
                       logoUrl: match.teamBLogoUrl,
-                      logoSize: 52,
+                      logoSize: 40,
                     ),
                   ],
                 ),
 
-                // Secondary Chasing Score (Bright Green)
-                if (!isUpcoming) ...[
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '$scoreBFormatted   •   $oversB OV',
-                        style: const TextStyle(
-                          color: Color(0xFF00E676),
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-
                 // Recent Balls: always show for Live, only when data exists for Finished
                 if (isLive || balls.isNotEmpty) ...[
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   RecentBallsWidget(
                     balls: balls,
                     showEmptySlots: isLive,
                   ),
                 ],
 
-                const SizedBox(height: 14),
+                const SizedBox(height: 8),
 
                 // Footer: Venue
                 Row(
@@ -202,7 +211,7 @@ class MatchCard extends StatelessWidget {
                   children: [
                     const Icon(
                       Icons.location_on_outlined,
-                      size: 13.5,
+                      size: 11.5,
                       color: AppColors.textMuted,
                     ),
                     const SizedBox(width: 4),
@@ -211,7 +220,7 @@ class MatchCard extends StatelessWidget {
                         match.venue,
                         style: const TextStyle(
                           color: AppColors.textMuted,
-                          fontSize: 12,
+                          fontSize: 11,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

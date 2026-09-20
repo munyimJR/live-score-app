@@ -4,7 +4,6 @@ import '../models/match_model.dart';
 import '../services/match_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/bottom_nav_bar.dart';
-import '../widgets/section_header.dart';
 
 class AdminScreen extends StatefulWidget {
   final bool showBottomNav;
@@ -295,12 +294,27 @@ class _AdminScreenState extends State<AdminScreen> {
           }
 
           if (currentSelected == null && matches.isNotEmpty) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted && _selectedMatchId == null) {
-                _onMatchSelected(matches.first);
-              }
-            });
             currentSelected = matches.first;
+            _selectedMatchId = currentSelected.id;
+            final parsedA = MatchModel.parseScore(currentSelected.scoreA);
+            final parsedB = MatchModel.parseScore(currentSelected.scoreB);
+            _teamARuns = parsedA.runs;
+            _teamAWickets = parsedA.wickets;
+            _teamBRuns = parsedB.runs;
+            _teamBWickets = parsedB.wickets;
+            _selectedStatus = currentSelected.status;
+
+            final oversAParts = _parseOvers(currentSelected.oversA);
+            _oversAWhole = oversAParts.$1;
+            _oversABalls = oversAParts.$2;
+
+            final oversBParts = _parseOvers(currentSelected.oversB);
+            _oversBWhole = oversBParts.$1;
+            _oversBBalls = oversBParts.$2;
+
+            _recentBalls
+              ..clear()
+              ..addAll(currentSelected.recentBalls);
           }
 
           return SingleChildScrollView(
@@ -308,68 +322,106 @@ class _AdminScreenState extends State<AdminScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Match Selector ──────────────────────────────────────
-                const SectionHeader(
-                    title: 'Select Match',
-                    subtitle: 'Choose a fixture to manage'),
-                const SizedBox(height: 6),
-                _Dropdown(
-                  value: _selectedMatchId ?? matches.first.id,
-                  items: matches
-                      .map((m) => DropdownMenuItem(
-                            value: m.id,
-                            child: Text(
-                                '${m.teamA} vs ${m.teamB} (${m.status})',
-                                overflow: TextOverflow.ellipsis),
-                          ))
-                      .toList(),
-                  onChanged: (id) {
-                    if (id != null) {
-                      _onMatchSelected(
-                          matches.firstWhere((m) => m.id == id));
-                    }
-                  },
+                // ── Compact Match & Status Selectors ───────────────────
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'SELECT FIXTURE',
+                            style: TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          _Dropdown(
+                            value: _selectedMatchId ?? matches.first.id,
+                            items: matches
+                                .map((m) => DropdownMenuItem(
+                                      value: m.id,
+                                      child: Text(
+                                        '${m.teamA} vs ${m.teamB}',
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontSize: 13),
+                                      ),
+                                    ))
+                                .toList(),
+                            onChanged: (id) {
+                              if (id != null) {
+                                _onMatchSelected(
+                                    matches.firstWhere((m) => m.id == id));
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'STATUS',
+                            style: TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          _Dropdown(
+                            value: _selectedStatus,
+                            items: ['Upcoming', 'Live', 'Finished']
+                                .map((s) => DropdownMenuItem(
+                                      value: s,
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            width: 7,
+                                            height: 7,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: s == 'Live'
+                                                  ? AppColors.liveRed
+                                                  : s == 'Finished'
+                                                      ? AppColors.finishedGreen
+                                                      : AppColors.upcomingGrey,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(s,
+                                              style: const TextStyle(
+                                                  fontSize: 12.5)),
+                                        ],
+                                      ),
+                                    ))
+                                .toList(),
+                            onChanged: (s) {
+                              if (s != null) {
+                                setState(() => _selectedStatus = s);
+                                _pushAllToFirestore();
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 14),
 
                 if (currentSelected != null) ...[
-                  // ── Match Status ──────────────────────────────────────
-                  const SectionHeader(
-                      title: 'Match Status',
-                      subtitle: 'Current progress of the match'),
-                  const SizedBox(height: 6),
-                  _Dropdown(
-                    value: _selectedStatus,
-                    items: ['Upcoming', 'Live', 'Finished']
-                        .map((s) => DropdownMenuItem(
-                              value: s,
-                              child: Row(children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: s == 'Live'
-                                        ? AppColors.liveRed
-                                        : s == 'Finished'
-                                            ? AppColors.finishedGreen
-                                            : AppColors.upcomingGrey,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Text(s),
-                              ]),
-                            ))
-                        .toList(),
-                    onChanged: (s) {
-                      if (s != null) {
-                        setState(() => _selectedStatus = s);
-                        _pushAllToFirestore();
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
                   // ── Live Scoring Panel ────────────────────────────────
                   _LiveScoringPanel(
                     teamA: currentSelected.teamA,
@@ -581,10 +633,10 @@ class _LiveScoringPanel extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppColors.liveRed.withValues(alpha: 0.3),
-          width: 1.2,
+          width: 1.0,
         ),
       ),
       child: Column(
@@ -592,29 +644,29 @@ class _LiveScoringPanel extends StatelessWidget {
         children: [
           // ── Batting team banner + Quick Switch ──────────────────────
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: const BoxDecoration(
               color: Color(0xFF191A22),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(19)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
             ),
             child: Row(
               children: [
                 Container(
-                  width: 8,
-                  height: 8,
+                  width: 7,
+                  height: 7,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: AppColors.liveRed,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 7),
                 const Text(
                   'NOW BATTING',
                   style: TextStyle(
                     color: AppColors.textMuted,
-                    fontSize: 10,
+                    fontSize: 9,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 1.2,
+                    letterSpacing: 1.0,
                   ),
                 ),
                 const Spacer(),
@@ -623,10 +675,10 @@ class _LiveScoringPanel extends StatelessWidget {
                   onTap: onToggleBatting,
                   child: Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.liveRed.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: AppColors.liveRed.withValues(alpha: 0.4),
                         width: 1,
@@ -636,13 +688,13 @@ class _LiveScoringPanel extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.swap_horiz_rounded,
-                            size: 14, color: AppColors.liveRed),
-                        const SizedBox(width: 5),
+                            size: 13, color: AppColors.liveRed),
+                        const SizedBox(width: 4),
                         Text(
                           'Switch to ${teamABatting ? teamB : teamA}',
                           style: const TextStyle(
                             color: AppColors.liveRed,
-                            fontSize: 11,
+                            fontSize: 10.5,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -656,7 +708,7 @@ class _LiveScoringPanel extends StatelessWidget {
 
           // ── Big Live Score Display ──────────────────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -667,7 +719,7 @@ class _LiveScoringPanel extends StatelessWidget {
                       Text(
                         battingTeam,
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: AppColors.textSecondary,
                         ),
@@ -681,16 +733,16 @@ class _LiveScoringPanel extends StatelessWidget {
                           Text(
                             '$battingRuns',
                             style: const TextStyle(
-                              fontSize: 48,
+                              fontSize: 38,
                               fontWeight: FontWeight.w900,
                               color: Colors.white,
-                              letterSpacing: -1,
+                              letterSpacing: -0.5,
                             ),
                           ),
                           Text(
                             ' / $battingWickets',
                             style: const TextStyle(
-                              fontSize: 28,
+                              fontSize: 22,
                               fontWeight: FontWeight.w700,
                               color: AppColors.accentGreen,
                             ),
@@ -703,10 +755,10 @@ class _LiveScoringPanel extends StatelessWidget {
                 // Overs bubble
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: const Color(0xFF1E202B),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: const Color(0xFF2E3142),
                       width: 1,
@@ -719,16 +771,16 @@ class _LiveScoringPanel extends StatelessWidget {
                         'OVERS',
                         style: TextStyle(
                           color: AppColors.textMuted,
-                          fontSize: 9,
+                          fontSize: 8,
                           fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
+                          letterSpacing: 1.0,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 1),
                       Text(
                         '$battingOversW.$battingOversB',
                         style: const TextStyle(
-                          fontSize: 22,
+                          fontSize: 18,
                           fontWeight: FontWeight.w900,
                           color: Colors.white,
                         ),
@@ -742,80 +794,83 @@ class _LiveScoringPanel extends StatelessWidget {
 
           // ── Manual quick-adjust row (+1, +4, +6 runs, +W) ───────────
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Row(
-              children: [
-                _ScoreChip(
-                  label: '+1 R',
-                  color: AppColors.accentGreen,
-                  onTap: () {
-                    if (teamABatting) {
-                      onRunsAChanged(1);
-                    } else {
-                      onRunsBChanged(1);
-                    }
-                  },
-                ),
-                const SizedBox(width: 8),
-                _ScoreChip(
-                  label: '+4 R',
-                  color: const Color(0xFF1E6B3A),
-                  onTap: () {
-                    if (teamABatting) {
-                      onRunsAChanged(4);
-                    } else {
-                      onRunsBChanged(4);
-                    }
-                  },
-                ),
-                const SizedBox(width: 8),
-                _ScoreChip(
-                  label: '+6 R',
-                  color: const Color(0xFFE68A00),
-                  onTap: () {
-                    if (teamABatting) {
-                      onRunsAChanged(6);
-                    } else {
-                      onRunsBChanged(6);
-                    }
-                  },
-                ),
-                const SizedBox(width: 8),
-                _ScoreChip(
-                  label: '+W',
-                  color: AppColors.liveRed,
-                  onTap: () {
-                    if (teamABatting) {
-                      onWicketsAChanged(1);
-                    } else {
-                      onWicketsBChanged(1);
-                    }
-                  },
-                ),
-                const Spacer(),
-                // Minus runs button
-                _ScoreChip(
-                  label: '-1 R',
-                  color: const Color(0xFF2E3040),
-                  textColor: AppColors.textSecondary,
-                  onTap: () {
-                    if (teamABatting) {
-                      onRunsAChanged(-1);
-                    } else {
-                      onRunsBChanged(-1);
-                    }
-                  },
-                ),
-              ],
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _ScoreChip(
+                    label: '+1 R',
+                    color: AppColors.accentGreen,
+                    onTap: () {
+                      if (teamABatting) {
+                        onRunsAChanged(1);
+                      } else {
+                        onRunsBChanged(1);
+                      }
+                    },
+                  ),
+                  const SizedBox(width: 5),
+                  _ScoreChip(
+                    label: '+4 R',
+                    color: const Color(0xFF1E6B3A),
+                    onTap: () {
+                      if (teamABatting) {
+                        onRunsAChanged(4);
+                      } else {
+                        onRunsBChanged(4);
+                      }
+                    },
+                  ),
+                  const SizedBox(width: 5),
+                  _ScoreChip(
+                    label: '+6 R',
+                    color: const Color(0xFFE68A00),
+                    onTap: () {
+                      if (teamABatting) {
+                        onRunsAChanged(6);
+                      } else {
+                        onRunsBChanged(6);
+                      }
+                    },
+                  ),
+                  const SizedBox(width: 5),
+                  _ScoreChip(
+                    label: '+W',
+                    color: AppColors.liveRed,
+                    onTap: () {
+                      if (teamABatting) {
+                        onWicketsAChanged(1);
+                      } else {
+                        onWicketsBChanged(1);
+                      }
+                    },
+                  ),
+                  const SizedBox(width: 10),
+                  // Minus runs button
+                  _ScoreChip(
+                    label: '-1 R',
+                    color: const Color(0xFF2E3040),
+                    textColor: AppColors.textSecondary,
+                    onTap: () {
+                      if (teamABatting) {
+                        onRunsAChanged(-1);
+                      } else {
+                        onRunsBChanged(-1);
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           const Divider(color: Color(0xFF22232D), height: 1),
 
           // ── Recent Balls of This Over ───────────────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            padding: const EdgeInsets.fromLTRB(14, 8, 14, 4),
             child: Row(
               children: [
                 const Column(
@@ -825,106 +880,115 @@ class _LiveScoringPanel extends StatelessWidget {
                     Text('THIS',
                         style: TextStyle(
                             color: AppColors.textMuted,
-                            fontSize: 8,
+                            fontSize: 7.5,
                             fontWeight: FontWeight.w700,
-                            letterSpacing: 1.2)),
+                            letterSpacing: 1.0)),
                     Text('OVER',
                         style: TextStyle(
                             color: AppColors.textMuted,
-                            fontSize: 8,
+                            fontSize: 7.5,
                             fontWeight: FontWeight.w700,
-                            letterSpacing: 1.2)),
+                            letterSpacing: 1.0)),
                   ],
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 // 6 ball slots
-                ...List.generate(6, (i) {
-                  final has = i < visualBalls.length;
-                  final isNext = i == visualBalls.length;
-                  if (!has) {
-                    return Container(
-                      width: 34,
-                      height: 34,
-                      margin: const EdgeInsets.only(right: 7),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isNext
-                            ? const Color(0xFF222430)
-                            : const Color(0xFF1C1D24),
-                        border: Border.all(
-                            color: isNext
-                                ? AppColors.accentGreen.withValues(alpha: 0.6)
-                                : const Color(0xFF2E3040),
-                            width: isNext ? 1.5 : 1),
-                      ),
-                      alignment: Alignment.center,
-                      child: Container(
-                        width: isNext ? 7 : 6,
-                        height: isNext ? 7 : 6,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isNext
-                              ? AppColors.accentGreen
-                              : const Color(0xFF353749),
-                        ),
-                      ),
-                    );
-                  }
-                  final ball = visualBalls[i].trim().toUpperCase();
-                  final bg = _bgColorForBall(ball);
-                  return Container(
-                    width: 34,
-                    height: 34,
-                    margin: const EdgeInsets.only(right: 7),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: bg,
-                      border: Border.all(color: bg, width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                            color: bg.withValues(alpha: 0.4),
-                            blurRadius: 6)
-                      ],
+                Expanded(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(6, (i) {
+                        final has = i < visualBalls.length;
+                        final isNext = i == visualBalls.length;
+                        if (!has) {
+                          return Container(
+                            width: 27,
+                            height: 27,
+                            margin: const EdgeInsets.only(right: 5),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isNext
+                                  ? const Color(0xFF222430)
+                                  : const Color(0xFF1C1D24),
+                              border: Border.all(
+                                  color: isNext
+                                      ? AppColors.accentGreen
+                                          .withValues(alpha: 0.6)
+                                      : const Color(0xFF2E3040),
+                                  width: isNext ? 1.4 : 1),
+                            ),
+                            alignment: Alignment.center,
+                            child: Container(
+                              width: isNext ? 6 : 5,
+                              height: isNext ? 6 : 5,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isNext
+                                    ? AppColors.accentGreen
+                                    : const Color(0xFF353749),
+                              ),
+                            ),
+                          );
+                        }
+                        final ball = visualBalls[i].trim().toUpperCase();
+                        final bg = _bgColorForBall(ball);
+                        return Container(
+                          width: 27,
+                          height: 27,
+                          margin: const EdgeInsets.only(right: 5),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: bg,
+                            border: Border.all(color: bg, width: 1.2),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: bg.withValues(alpha: 0.35),
+                                  blurRadius: 4)
+                            ],
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            ball,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: ball.length > 1 ? 8 : 11,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        );
+                      }),
                     ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      ball,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: ball.length > 1 ? 8 : 12,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  );
-                }),
-
-                const Spacer(),
+                  ),
+                ),
 
                 // Undo / clear
                 if (recentBalls.isNotEmpty) ...[
+                  const SizedBox(width: 4),
                   GestureDetector(
                     onTap: onUndo,
                     child: Container(
-                      padding: const EdgeInsets.all(6),
+                      padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1D1E24),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Icon(Icons.backspace_outlined,
-                          size: 15, color: AppColors.textSecondary),
+                          size: 14, color: AppColors.textSecondary),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 5),
                   GestureDetector(
                     onTap: onClear,
                     child: Container(
-                      padding: const EdgeInsets.all(6),
+                      padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1D1E24),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Icon(Icons.clear_all_rounded,
-                          size: 15, color: AppColors.liveRed),
+                          size: 14, color: AppColors.liveRed),
                     ),
                   ),
                 ],
@@ -934,53 +998,63 @@ class _LiveScoringPanel extends StatelessWidget {
 
           // ── Ball Buttons ────────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: ballOptions.map((option) {
-                final bg = _bgColorForBall(option);
-                return GestureDetector(
-                  onTap: () => onBallTapped(option),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 110),
-                    width: 52,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: bg.withValues(alpha: 0.85),
-                      borderRadius: BorderRadius.circular(11),
-                      border: Border.all(
-                        color: bg,
-                        width: 1.2,
+            padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final buttonWidth =
+                    ((constraints.maxWidth - (6 * 4)) / 5).clamp(42.0, 58.0);
+                return Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: ballOptions.map((option) {
+                    final bg = _bgColorForBall(option);
+                    return GestureDetector(
+                      onTap: () => onBallTapped(option),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 110),
+                        width: buttonWidth,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: bg.withValues(alpha: 0.85),
+                          borderRadius: BorderRadius.circular(9),
+                          border: Border.all(
+                            color: bg,
+                            width: 1.1,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          option,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: option.length > 1 ? 10.5 : 14,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
                       ),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      option,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: option.length > 1 ? 11 : 16,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
+                    );
+                  }).toList(),
                 );
-              }).toList(),
+              },
             ),
           ),
 
           if (recentBalls.length >= 6)
             Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+              padding: const EdgeInsets.only(left: 14, right: 14, bottom: 10),
               child: Row(
                 children: [
                   const Icon(Icons.history_rounded,
                       size: 13, color: AppColors.accentGreen),
                   const SizedBox(width: 6),
-                  Text(
-                    '${recentBalls.length} balls in database • Showing last 5 (rightmost slot free)',
-                    style: const TextStyle(
-                        color: AppColors.textMuted, fontSize: 11),
+                  Expanded(
+                    child: Text(
+                      '${recentBalls.length} balls total • Last 5 shown (slot 6 ready)',
+                      style: const TextStyle(
+                          color: AppColors.textMuted, fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),

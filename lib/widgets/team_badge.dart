@@ -11,7 +11,7 @@ class TeamBadge extends StatelessWidget {
     super.key,
     required this.teamName,
     required this.logoUrl,
-    this.logoSize = 52.0,
+    this.logoSize = 40.0,
   });
 
   @override
@@ -24,17 +24,17 @@ class TeamBadge extends StatelessWidget {
           teamName: teamName,
           size: logoSize,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         SizedBox(
-          width: 88,
+          width: 78,
           child: Text(
             teamName,
             textAlign: TextAlign.center,
-            maxLines: 2,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: AppColors.textPrimary,
-              fontSize: 13,
+              fontSize: 11.5,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.2,
             ),

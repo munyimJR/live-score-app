@@ -54,82 +54,96 @@ class RecentBallsWidget extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 14),
+      padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 10),
       decoration: BoxDecoration(
         color: const Color(0xFF18191F),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF252630), width: 1),
       ),
-      child: Row(
-        children: [
-          // Label
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'THIS',
-                style: TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              Text(
-                'OVER',
-                style: TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 12),
-
-          // 6 ball slots
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: List.generate(6, (i) {
-                final hasBall = i < visualBalls.length;
-                return hasBall
-                    ? _FilledBall(ball: visualBalls[i])
-                    : _EmptySlot(isNext: i == visualBalls.length);
-              }),
-            ),
-          ),
-
-          // Over total (run sum)
-          if (visualBalls.isNotEmpty) ...[
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Label
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '${_overRuns(visualBalls)}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const Text(
-                  'runs',
+                  'THIS',
                   style: TextStyle(
                     color: AppColors.textMuted,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
+                    fontSize: 8,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                Text(
+                  'OVER',
+                  style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 8,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.0,
                   ),
                 ),
               ],
             ),
+            const SizedBox(width: 8),
+
+            // 6 ball slots
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(6, (i) {
+                final hasBall = i < visualBalls.length;
+                return Padding(
+                  padding: EdgeInsets.only(right: i == 5 ? 0 : 4.0),
+                  child: hasBall
+                      ? _FilledBall(ball: visualBalls[i])
+                      : _EmptySlot(isNext: i == visualBalls.length),
+                );
+              }),
+            ),
+
+            // Over total (run sum)
+            if (visualBalls.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              Container(
+                height: 20,
+                width: 1,
+                color: const Color(0xFF282A36),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${_overRuns(visualBalls)}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      height: 1.1,
+                    ),
+                  ),
+                  const Text(
+                    'runs',
+                    style: TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 8,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                      height: 1.1,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -190,16 +204,16 @@ class _FilledBallState extends State<_FilledBall>
     return ScaleTransition(
       scale: _scale,
       child: Container(
-        width: 34,
-        height: 34,
+        width: 26,
+        height: 26,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: bg,
-          border: Border.all(color: border, width: 1.5),
+          border: Border.all(color: border, width: 1.2),
           boxShadow: [
             BoxShadow(
-              color: bg.withValues(alpha: 0.45),
-              blurRadius: 6,
+              color: bg.withValues(alpha: 0.35),
+              blurRadius: 4,
               spreadRadius: 0,
             ),
           ],
@@ -209,7 +223,7 @@ class _FilledBallState extends State<_FilledBall>
           clean,
           style: TextStyle(
             color: Colors.white,
-            fontSize: isSmallText ? 9 : 13,
+            fontSize: isSmallText ? 8 : 11,
             fontWeight: FontWeight.w900,
             letterSpacing: isSmallText ? -0.5 : 0,
           ),
@@ -261,23 +275,23 @@ class _EmptySlotState extends State<_EmptySlot>
       return FadeTransition(
         opacity: _opacity,
         child: Container(
-          width: 34,
-          height: 34,
+          width: 26,
+          height: 26,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: const Color(0xFF252733),
+            color: const Color(0xFF222430),
             border: Border.all(
-              color: AppColors.accentGreen.withValues(alpha: 0.5),
-              width: 1.5,
+              color: AppColors.accentGreen.withValues(alpha: 0.75),
+              width: 1.4,
             ),
           ),
           alignment: Alignment.center,
           child: Container(
-            width: 7,
-            height: 7,
+            width: 6,
+            height: 6,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.accentGreen.withValues(alpha: 0.7),
+              color: AppColors.accentGreen.withValues(alpha: 0.85),
             ),
           ),
         ),
@@ -285,8 +299,8 @@ class _EmptySlotState extends State<_EmptySlot>
     }
 
     return Container(
-      width: 34,
-      height: 34,
+      width: 26,
+      height: 26,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: const Color(0xFF1C1D24),
@@ -294,8 +308,8 @@ class _EmptySlotState extends State<_EmptySlot>
       ),
       alignment: Alignment.center,
       child: Container(
-        width: 6,
-        height: 6,
+        width: 5,
+        height: 5,
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
           color: Color(0xFF353749),
