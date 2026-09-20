@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,6 +12,14 @@ void main() async {
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Enable offline persistence and unlimited cache size.
+  // Note: experimentalForceLongPolling was removed in cloud_firestore v6+.
+  // Firestore uses gRPC on Android — ensure emulator has internet access.
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
 
   // Auto-seed sample matches if collection is empty
@@ -28,8 +37,8 @@ class LiveScoreApp extends StatelessWidget {
       title: 'Cricket Live Score',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      defaultTransition: Transition.cupertino,
-      transitionDuration: const Duration(milliseconds: 280),
+      defaultTransition: Transition.native,
+      transitionDuration: const Duration(milliseconds: 350),
       home: const HomeScreen(),
     );
   }

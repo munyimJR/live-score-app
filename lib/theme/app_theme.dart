@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
@@ -27,11 +26,11 @@ class AppTheme {
       canvasColor: AppColors.background,
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
-          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.android: ZoomPageTransitionsBuilder(allowEnterRouteSnapshotting: false),
+          TargetPlatform.iOS: ZoomPageTransitionsBuilder(allowEnterRouteSnapshotting: false),
+          TargetPlatform.windows: ZoomPageTransitionsBuilder(allowEnterRouteSnapshotting: false),
+          TargetPlatform.macOS: ZoomPageTransitionsBuilder(allowEnterRouteSnapshotting: false),
+          TargetPlatform.linux: ZoomPageTransitionsBuilder(allowEnterRouteSnapshotting: false),
         },
       ),
       colorScheme: const ColorScheme.dark(

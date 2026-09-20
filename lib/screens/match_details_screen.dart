@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../models/match_model.dart';
 import '../services/match_service.dart';
 import '../theme/app_colors.dart';
@@ -35,7 +36,7 @@ class MatchDetailsScreen extends StatelessWidget {
         title: const Text('Match Center'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: Get.back,
         ),
       ),
       body: StreamBuilder<MatchModel?>(
@@ -78,9 +79,8 @@ class MatchDetailsScreen extends StatelessWidget {
           final oversA = match.oversA.isNotEmpty ? match.oversA : (isUpcoming ? '0.0' : '50.0');
           final oversB = match.oversB.isNotEmpty ? match.oversB : (isUpcoming ? '0.0' : '20.0');
 
-          final List<String> balls = match.recentBalls.isNotEmpty
-              ? match.recentBalls
-              : (isLive ? const ['4', '1', '6', 'W', '2', '1'] : const []);
+          // Only show real balls from Firestore — no hardcoded fallback
+          final List<String> balls = match.recentBalls;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
@@ -207,10 +207,13 @@ class MatchDetailsScreen extends StatelessWidget {
                         ),
                       ],
 
-                      // Recent Balls Widget
-                      if (balls.isNotEmpty) ...[
+                      // Recent Balls Widget — always show for Live matches
+                      if (isLive || balls.isNotEmpty) ...[
                         const SizedBox(height: 20),
-                        RecentBallsWidget(balls: balls),
+                        RecentBallsWidget(
+                          balls: balls,
+                          showEmptySlots: isLive,
+                        ),
                       ],
                     ],
                   ),

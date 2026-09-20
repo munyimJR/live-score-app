@@ -41,17 +41,34 @@ class MatchService {
     });
   }
 
-  /// Updates score and status for a specific match.
+  /// Updates score, overs, recent balls, and status for a specific match.
   Future<void> updateMatchScore({
     required String matchId,
     required String scoreA,
     required String scoreB,
     required String status,
+    String oversA = '',
+    String oversB = '',
+    List<String> recentBalls = const [],
   }) async {
     await _matchesRef.doc(matchId).update({
       'scoreA': scoreA,
       'scoreB': scoreB,
       'status': status,
+      'oversA': oversA,
+      'oversB': oversB,
+      'recentBalls': recentBalls,
+    });
+  }
+
+  /// Immediately writes only the recentBalls field — called on every ball tap
+  /// so listeners (StreamBuilder) get the update without pressing UPDATE SCORE.
+  Future<void> updateRecentBalls({
+    required String matchId,
+    required List<String> recentBalls,
+  }) async {
+    await _matchesRef.doc(matchId).update({
+      'recentBalls': recentBalls,
     });
   }
 

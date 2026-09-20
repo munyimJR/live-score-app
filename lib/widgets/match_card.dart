@@ -36,10 +36,8 @@ class MatchCard extends StatelessWidget {
     final oversA = match.oversA.isNotEmpty ? match.oversA : (isUpcoming ? '0.0' : '50.0');
     final oversB = match.oversB.isNotEmpty ? match.oversB : (isUpcoming ? '0.0' : '20.0');
 
-    // Default recent balls for Live matches if not explicitly set
-    final List<String> balls = match.recentBalls.isNotEmpty
-        ? match.recentBalls
-        : (isLive ? const ['4', '1', '6', 'W', '2', '1'] : const []);
+    // Only show real balls from Firestore — no hardcoded fallback
+    final List<String> balls = match.recentBalls;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 18),
@@ -187,10 +185,13 @@ class MatchCard extends StatelessWidget {
                   ),
                 ],
 
-                // Recent Balls Container (if live or has balls)
-                if (balls.isNotEmpty) ...[
+                // Recent Balls: always show for Live, only when data exists for Finished
+                if (isLive || balls.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  RecentBallsWidget(balls: balls),
+                  RecentBallsWidget(
+                    balls: balls,
+                    showEmptySlots: isLive,
+                  ),
                 ],
 
                 const SizedBox(height: 14),

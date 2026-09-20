@@ -175,8 +175,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           onTap: () {
                             Get.to(
                               () => MatchDetailsScreen(matchId: match.id),
-                              transition: Transition.cupertino,
-                              duration: const Duration(milliseconds: 280),
+                              transition: Transition.fadeIn,
+                              duration: const Duration(milliseconds: 350),
+                              curve: Curves.easeInOut,
                             );
                           },
                         );
