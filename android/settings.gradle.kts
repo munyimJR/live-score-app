@@ -1,3 +1,13 @@
+try {
+    val processEnvClass = Class.forName("java.lang.ProcessEnvironment")
+    val envField = processEnvClass.getDeclaredField("theCaseInsensitiveEnvironment")
+    envField.isAccessible = true
+    (envField.get(null) as? MutableMap<*, *>)?.let { map ->
+        val keysToRemove = map.keys.filter { it.toString().equals("ANDROID_PREFS_ROOT", ignoreCase = true) }
+        keysToRemove.forEach { map.remove(it) }
+    }
+} catch (_: Throwable) {}
+
 pluginManagement {
     val flutterSdkPath =
         run {

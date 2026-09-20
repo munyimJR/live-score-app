@@ -11,6 +11,9 @@ class MatchModel {
   final String status;
   final Timestamp matchDate;
   final String venue;
+  final String oversA;
+  final String oversB;
+  final List<String> recentBalls;
 
   const MatchModel({
     required this.id,
@@ -23,10 +26,19 @@ class MatchModel {
     required this.status,
     required this.matchDate,
     required this.venue,
+    this.oversA = '',
+    this.oversB = '',
+    this.recentBalls = const [],
   });
 
   factory MatchModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
+    final recentRaw = data['recentBalls'];
+    List<String> parsedRecentBalls = [];
+    if (recentRaw is List) {
+      parsedRecentBalls = recentRaw.map((e) => e.toString()).toList();
+    }
+
     return MatchModel(
       id: doc.id,
       teamA: data['teamA'] as String? ?? 'Team A',
@@ -40,6 +52,9 @@ class MatchModel {
           ? data['matchDate'] as Timestamp
           : Timestamp.now(),
       venue: data['venue'] as String? ?? 'TBD',
+      oversA: data['oversA'] as String? ?? '',
+      oversB: data['oversB'] as String? ?? '',
+      recentBalls: parsedRecentBalls,
     );
   }
 
@@ -54,6 +69,9 @@ class MatchModel {
       'status': status,
       'matchDate': matchDate,
       'venue': venue,
+      'oversA': oversA,
+      'oversB': oversB,
+      'recentBalls': recentBalls,
     };
   }
 

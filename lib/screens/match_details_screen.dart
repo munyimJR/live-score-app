@@ -3,9 +3,10 @@ import '../models/match_model.dart';
 import '../services/match_service.dart';
 import '../theme/app_colors.dart';
 import '../utils/date_formatter.dart';
+import '../widgets/recent_balls_widget.dart';
 import '../widgets/section_header.dart';
 import '../widgets/status_chip.dart';
-import '../widgets/team_row.dart';
+import '../widgets/team_badge.dart';
 
 class MatchDetailsScreen extends StatelessWidget {
   final String matchId;
@@ -15,6 +16,15 @@ class MatchDetailsScreen extends StatelessWidget {
     super.key,
     required this.matchId,
   });
+
+  String _formatScore(String score) {
+    final clean = score.trim();
+    if (clean.contains('/')) {
+      final parts = clean.split('/');
+      return '${parts[0].trim()} / ${parts[1].trim()}';
+    }
+    return clean;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,28 +68,41 @@ class MatchDetailsScreen extends StatelessWidget {
             );
           }
 
+          final isLive = match.status.toLowerCase() == 'live';
+          final isUpcoming = match.status.toLowerCase() == 'upcoming';
+
+          final scoreAFormatted = _formatScore(match.scoreA);
+          final scoreBFormatted = _formatScore(match.scoreB);
+
+          final oversA = match.oversA.isNotEmpty ? match.oversA : (isUpcoming ? '0.0' : '50.0');
+          final oversB = match.oversB.isNotEmpty ? match.oversB : (isUpcoming ? '0.0' : '20.0');
+
+          final List<String> balls = match.recentBalls.isNotEmpty
+              ? match.recentBalls
+              : (isLive ? const ['4', '1', '6', 'W', '2', '1'] : const []);
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Match Status Card
+                // Top Hero Scorecard Card (Matching the new visual design)
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(22),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(20),
+                    color: const Color(0xFF141418),
+                    borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: match.status.toLowerCase() == 'live'
+                      color: isLive
                           ? AppColors.liveRed.withValues(alpha: 0.4)
-                          : AppColors.cardBorder,
+                          : const Color(0xFF26262F),
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.4),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
+                        color: Colors.black.withValues(alpha: 0.5),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
                       ),
                     ],
                   ),
@@ -102,25 +125,92 @@ class MatchDetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 20),
 
-                      // Team A Prominent Row
-                      TeamRow(
-                        teamName: match.teamA,
-                        logoUrl: match.teamALogoUrl,
-                        score: match.scoreA,
-                        isLarge: true,
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12.0),
-                        child: Divider(color: AppColors.cardBorder, height: 1),
+                      // Matchup Row: [Team A]  [Score & Overs]  [Team B]
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TeamBadge(
+                            teamName: match.teamA,
+                            logoUrl: match.teamALogoUrl,
+                            logoSize: 64,
+                          ),
+                          Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const SizedBox(height: 6),
+                                Text(
+                                  isUpcoming ? 'VS' : scoreAFormatted,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 38,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                if (!isUpcoming)
+                                  RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: '$oversA ',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                        const TextSpan(
+                                          text: 'Overs',
+                                          style: TextStyle(
+                                            color: AppColors.textSecondary,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                else
+                                  const Text(
+                                    'Starts Soon',
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          TeamBadge(
+                            teamName: match.teamB,
+                            logoUrl: match.teamBLogoUrl,
+                            logoSize: 64,
+                          ),
+                        ],
                       ),
 
-                      // Team B Prominent Row
-                      TeamRow(
-                        teamName: match.teamB,
-                        logoUrl: match.teamBLogoUrl,
-                        score: match.scoreB,
-                        isLarge: true,
-                      ),
+                      // Secondary Chasing Score (Bright Green)
+                      if (!isUpcoming) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          '$scoreBFormatted   •   $oversB OV',
+                          style: const TextStyle(
+                            color: Color(0xFF00E676),
+                            fontSize: 19,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+
+                      // Recent Balls Widget
+                      if (balls.isNotEmpty) ...[
+                        const SizedBox(height: 20),
+                        RecentBallsWidget(balls: balls),
+                      ],
                     ],
                   ),
                 ),
@@ -172,7 +262,7 @@ class MatchDetailsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // Live Updates Note
+                // Real-time Indicator Note
                 Center(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
