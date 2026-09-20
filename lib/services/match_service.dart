@@ -198,7 +198,7 @@ class MatchService {
         'teamA': 'India',
         'teamB': 'England',
         'teamALogoUrl': 'https://flagcdn.com/w160/in.png',
-        'teamBLogoUrl': 'https://flagcdn.com/w160/gb-eng.png',
+        'teamBLogoUrl': 'https://flagcdn.com/w160/gb.png',
         'scoreA': '224/5',
         'scoreB': '98/2',
         'oversA': '36.4',
@@ -213,8 +213,8 @@ class MatchService {
       {
         'teamA': 'Pakistan',
         'teamB': 'South Africa',
-        'teamALogoUrl': '', // Empty to test fallback!
-        'teamBLogoUrl': '', // Empty to test fallback!
+        'teamALogoUrl': 'https://flagcdn.com/w160/pk.png',
+        'teamBLogoUrl': 'https://flagcdn.com/w160/za.png',
         'scoreA': '0/0',
         'scoreB': '0/0',
         'oversA': '0.0',
@@ -230,7 +230,7 @@ class MatchService {
         'teamA': 'West Indies',
         'teamB': 'Sri Lanka',
         'teamALogoUrl': 'https://flagcdn.com/w160/jm.png',
-        'teamBLogoUrl': '', // One with logo, one empty fallback
+        'teamBLogoUrl': 'https://flagcdn.com/w160/lk.png',
         'scoreA': '0/0',
         'scoreB': '0/0',
         'oversA': '0.0',
@@ -245,8 +245,8 @@ class MatchService {
       {
         'teamA': 'Bangladesh',
         'teamB': 'Afghanistan',
-        'teamALogoUrl': '', // Fallback test
-        'teamBLogoUrl': '', // Fallback test
+        'teamALogoUrl': 'https://flagcdn.com/w160/bd.png',
+        'teamBLogoUrl': 'https://flagcdn.com/w160/af.png',
         'scoreA': '265/7',
         'scoreB': '241/10',
         'oversA': '50.0',

@@ -154,7 +154,11 @@ class _PlayingElevenWidgetState extends State<PlayingElevenWidget> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TeamLogo(logoUrl: logoUrl, size: 24),
+            TeamLogo(
+              logoUrl: logoUrl,
+              teamName: teamName,
+              size: 24,
+            ),
             const SizedBox(width: 8),
             Flexible(
               child: Text(

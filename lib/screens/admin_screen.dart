@@ -8,7 +8,12 @@ import '../widgets/score_stepper.dart';
 import '../widgets/section_header.dart';
 
 class AdminScreen extends StatefulWidget {
-  const AdminScreen({super.key});
+  final bool showBottomNav;
+
+  const AdminScreen({
+    super.key,
+    this.showBottomNav = true,
+  });
 
   @override
   State<AdminScreen> createState() => _AdminScreenState();
@@ -404,14 +409,16 @@ class _AdminScreenState extends State<AdminScreen> {
           );
         },
       ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: 1,
-        onTap: (idx) {
-          if (idx == 0) {
-            Get.back();
-          }
-        },
-      ),
+      bottomNavigationBar: widget.showBottomNav
+          ? BottomNavBar(
+              currentIndex: 1,
+              onTap: (idx) {
+                if (idx == 0) {
+                  Get.back();
+                }
+              },
+            )
+          : null,
     );
   }
 }

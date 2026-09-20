@@ -21,6 +21,7 @@ class TeamBadge extends StatelessWidget {
       children: [
         TeamLogo(
           logoUrl: logoUrl,
+          teamName: teamName,
           size: logoSize,
         ),
         const SizedBox(height: 8),

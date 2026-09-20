@@ -20,14 +20,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final MatchService _matchService = MatchService();
+  int _currentTabIndex = 0;
   String _searchQuery = '';
   String _selectedStatus = 'All';
-
-  void _onNavTap(int index) {
-    if (index == 1) {
-      Get.to(() => const AdminScreen());
-    }
-  }
 
   List<MatchModel> _filterMatches(List<MatchModel> allMatches) {
     return allMatches.where((match) {
@@ -55,122 +50,142 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.accentGreenMuted,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.sports_cricket,
-                color: AppColors.accentGreen,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Text('CRICKET LIVE'),
-          ],
-        ),
-      ),
-      body: StreamBuilder<List<MatchModel>>(
-        stream: _matchService.getMatchesStream(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.error_outline, color: AppColors.liveRed, size: 48),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Failed to load matches: ${snapshot.error}',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.textSecondary),
+      appBar: _currentTabIndex == 0
+          ? AppBar(
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.accentGreenMuted,
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.accentGreen),
-            );
-          }
-
-          final allMatches = snapshot.data ?? [];
-          final filteredMatches = _filterMatches(allMatches);
-
-          return Column(
-            children: [
-              // Search and Filter Controls
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                child: Column(
-                  children: [
-                    SearchBarWidget(
-                      onChanged: (val) {
-                        setState(() {
-                          _searchQuery = val.trim();
-                        });
-                      },
+                    child: const Icon(
+                      Icons.sports_cricket,
+                      color: AppColors.accentGreen,
+                      size: 20,
                     ),
-                    const SizedBox(height: 12),
-                    StatusFilterChips(
-                      selectedStatus: _selectedStatus,
-                      onSelected: (status) {
-                        setState(() {
-                          _selectedStatus = status;
-                        });
-                      },
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text('CRICKET LIVE'),
+                ],
               ),
-
-              // Match Count & List Header
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: SectionHeader(
-                  title: _selectedStatus == 'All'
-                      ? 'All Fixtures'
-                      : '$_selectedStatus Matches',
-                  subtitle: '${filteredMatches.length} matches found',
-                ),
-              ),
-
-              // Match Cards List
-              Expanded(
-                child: filteredMatches.isEmpty
-                    ? _buildEmptyState()
-                    : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                        itemCount: filteredMatches.length,
-                        itemBuilder: (context, index) {
-                          final match = filteredMatches[index];
-                          return MatchCard(
-                            match: match,
-                            onTap: () {
-                              Get.to(() => MatchDetailsScreen(matchId: match.id));
-                            },
-                          );
-                        },
-                      ),
-              ),
-            ],
-          );
-        },
+            )
+          : null,
+      body: IndexedStack(
+        index: _currentTabIndex,
+        children: [
+          _buildMatchesBody(),
+          const AdminScreen(showBottomNav: false),
+        ],
       ),
       bottomNavigationBar: BottomNavBar(
-        currentIndex: 0,
-        onTap: _onNavTap,
+        currentIndex: _currentTabIndex,
+        onTap: (index) {
+          setState(() {
+            _currentTabIndex = index;
+          });
+        },
       ),
+    );
+  }
+
+  Widget _buildMatchesBody() {
+    return StreamBuilder<List<MatchModel>>(
+      stream: _matchService.getMatchesStream(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline, color: AppColors.liveRed, size: 48),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Failed to load matches: ${snapshot.error}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.accentGreen),
+          );
+        }
+
+        final allMatches = snapshot.data ?? [];
+        final filteredMatches = _filterMatches(allMatches);
+
+        return Column(
+          children: [
+            // Search and Filter Controls
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: Column(
+                children: [
+                  SearchBarWidget(
+                    onChanged: (val) {
+                      setState(() {
+                        _searchQuery = val.trim();
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  StatusFilterChips(
+                    selectedStatus: _selectedStatus,
+                    onSelected: (status) {
+                      setState(() {
+                        _selectedStatus = status;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            // Match Count & List Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: SectionHeader(
+                title: _selectedStatus == 'All'
+                    ? 'All Fixtures'
+                    : '$_selectedStatus Matches',
+                subtitle: '${filteredMatches.length} matches found',
+              ),
+            ),
+
+            // Match Cards List
+            Expanded(
+              child: filteredMatches.isEmpty
+                  ? _buildEmptyState()
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                      itemCount: filteredMatches.length,
+                      itemBuilder: (context, index) {
+                        final match = filteredMatches[index];
+                        return MatchCard(
+                          match: match,
+                          onTap: () {
+                            Get.to(
+                              () => MatchDetailsScreen(matchId: match.id),
+                              transition: Transition.cupertino,
+                              duration: const Duration(milliseconds: 280),
+                            );
+                          },
+                        );
+                      },
+                    ),
+            ),
+          ],
+        );
+      },
     );
   }
 

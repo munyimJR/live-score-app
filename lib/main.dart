@@ -28,6 +28,8 @@ class LiveScoreApp extends StatelessWidget {
       title: 'Cricket Live Score',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
+      defaultTransition: Transition.cupertino,
+      transitionDuration: const Duration(milliseconds: 280),
       home: const HomeScreen(),
     );
   }

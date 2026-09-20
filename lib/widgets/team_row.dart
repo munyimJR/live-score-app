@@ -23,6 +23,7 @@ class TeamRow extends StatelessWidget {
       children: [
         TeamLogo(
           logoUrl: logoUrl,
+          teamName: teamName,
           size: isLarge ? 48.0 : 38.0,
         ),
         const SizedBox(width: 12),
