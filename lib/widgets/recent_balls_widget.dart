@@ -54,96 +54,103 @@ class RecentBallsWidget extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 10),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       decoration: BoxDecoration(
         color: const Color(0xFF18191F),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF252630), width: 1),
       ),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.centerLeft,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Label
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Label
+          const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'THIS',
+                style: TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 8,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.0,
+                ),
+              ),
+              Text(
+                'OVER',
+                style: TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 8,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.0,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
+
+          // 6 ball slots - evenly distributed across the entire middle space
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final ballSize =
+                    ((constraints.maxWidth - 20) / 6).clamp(24.0, 31.0);
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: List.generate(6, (i) {
+                    final hasBall = i < visualBalls.length;
+                    return hasBall
+                        ? _FilledBall(
+                            ball: visualBalls[i],
+                            size: ballSize,
+                          )
+                        : _EmptySlot(
+                            isNext: i == visualBalls.length,
+                            size: ballSize,
+                          );
+                  }),
+                );
+              },
+            ),
+          ),
+
+          // Over total (run sum)
+          if (visualBalls.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Container(
+              height: 20,
+              width: 1,
+              color: const Color(0xFF282A36),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'THIS',
-                  style: TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 8,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.0,
+                  '${_overRuns(visualBalls)}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    height: 1.1,
                   ),
                 ),
-                Text(
-                  'OVER',
+                const Text(
+                  'runs',
                   style: TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 8,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.0,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                    height: 1.1,
                   ),
                 ),
               ],
             ),
-            const SizedBox(width: 8),
-
-            // 6 ball slots
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: List.generate(6, (i) {
-                final hasBall = i < visualBalls.length;
-                return Padding(
-                  padding: EdgeInsets.only(right: i == 5 ? 0 : 4.0),
-                  child: hasBall
-                      ? _FilledBall(ball: visualBalls[i])
-                      : _EmptySlot(isNext: i == visualBalls.length),
-                );
-              }),
-            ),
-
-            // Over total (run sum)
-            if (visualBalls.isNotEmpty) ...[
-              const SizedBox(width: 8),
-              Container(
-                height: 20,
-                width: 1,
-                color: const Color(0xFF282A36),
-              ),
-              const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '${_overRuns(visualBalls)}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      height: 1.1,
-                    ),
-                  ),
-                  const Text(
-                    'runs',
-                    style: TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 8,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                      height: 1.1,
-                    ),
-                  ),
-                ],
-              ),
-            ],
           ],
-        ),
+        ],
       ),
     );
   }
@@ -167,7 +174,8 @@ class RecentBallsWidget extends StatelessWidget {
 
 class _FilledBall extends StatefulWidget {
   final String ball;
-  const _FilledBall({required this.ball});
+  final double size;
+  const _FilledBall({required this.ball, this.size = 28.0});
 
   @override
   State<_FilledBall> createState() => _FilledBallState();
@@ -200,12 +208,15 @@ class _FilledBallState extends State<_FilledBall>
     final bg = RecentBallsWidget.bgColor(widget.ball);
     final border = RecentBallsWidget.borderColor(widget.ball);
     final isSmallText = clean.length > 1;
+    final fontSize = isSmallText
+        ? (widget.size * 0.32).clamp(7.5, 9.5)
+        : (widget.size * 0.42).clamp(10.5, 13.0);
 
     return ScaleTransition(
       scale: _scale,
       child: Container(
-        width: 26,
-        height: 26,
+        width: widget.size,
+        height: widget.size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: bg,
@@ -223,7 +234,7 @@ class _FilledBallState extends State<_FilledBall>
           clean,
           style: TextStyle(
             color: Colors.white,
-            fontSize: isSmallText ? 8 : 11,
+            fontSize: fontSize,
             fontWeight: FontWeight.w900,
             letterSpacing: isSmallText ? -0.5 : 0,
           ),
@@ -238,7 +249,8 @@ class _FilledBallState extends State<_FilledBall>
 class _EmptySlot extends StatefulWidget {
   /// When true this is the "next ball" slot — renders with a subtle pulse.
   final bool isNext;
-  const _EmptySlot({required this.isNext});
+  final double size;
+  const _EmptySlot({required this.isNext, this.size = 28.0});
 
   @override
   State<_EmptySlot> createState() => _EmptySlotState();
@@ -271,12 +283,16 @@ class _EmptySlotState extends State<_EmptySlot>
 
   @override
   Widget build(BuildContext context) {
+    final dotSize = widget.isNext
+        ? (widget.size * 0.24).clamp(5.0, 7.0)
+        : (widget.size * 0.18).clamp(4.0, 6.0);
+
     if (widget.isNext) {
       return FadeTransition(
         opacity: _opacity,
         child: Container(
-          width: 26,
-          height: 26,
+          width: widget.size,
+          height: widget.size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: const Color(0xFF222430),
@@ -287,8 +303,8 @@ class _EmptySlotState extends State<_EmptySlot>
           ),
           alignment: Alignment.center,
           child: Container(
-            width: 6,
-            height: 6,
+            width: dotSize,
+            height: dotSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.accentGreen.withValues(alpha: 0.85),
@@ -299,8 +315,8 @@ class _EmptySlotState extends State<_EmptySlot>
     }
 
     return Container(
-      width: 26,
-      height: 26,
+      width: widget.size,
+      height: widget.size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: const Color(0xFF1C1D24),
@@ -308,8 +324,8 @@ class _EmptySlotState extends State<_EmptySlot>
       ),
       alignment: Alignment.center,
       child: Container(
-        width: 5,
-        height: 5,
+        width: dotSize,
+        height: dotSize,
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
           color: Color(0xFF353749),

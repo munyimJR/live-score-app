@@ -892,74 +892,81 @@ class _LiveScoringPanel extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(width: 8),
-                // 6 ball slots
+                // 6 ball slots - evenly distributed across the middle space
                 Expanded(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(6, (i) {
-                        final has = i < visualBalls.length;
-                        final isNext = i == visualBalls.length;
-                        if (!has) {
-                          return Container(
-                            width: 27,
-                            height: 27,
-                            margin: const EdgeInsets.only(right: 5),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isNext
-                                  ? const Color(0xFF222430)
-                                  : const Color(0xFF1C1D24),
-                              border: Border.all(
-                                  color: isNext
-                                      ? AppColors.accentGreen
-                                          .withValues(alpha: 0.6)
-                                      : const Color(0xFF2E3040),
-                                  width: isNext ? 1.4 : 1),
-                            ),
-                            alignment: Alignment.center,
-                            child: Container(
-                              width: isNext ? 6 : 5,
-                              height: isNext ? 6 : 5,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final ballSize =
+                          ((constraints.maxWidth - 20) / 6).clamp(24.0, 31.0);
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: List.generate(6, (i) {
+                          final has = i < visualBalls.length;
+                          final isNext = i == visualBalls.length;
+                          if (!has) {
+                            return Container(
+                              width: ballSize,
+                              height: ballSize,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: isNext
-                                    ? AppColors.accentGreen
-                                    : const Color(0xFF353749),
+                                    ? const Color(0xFF222430)
+                                    : const Color(0xFF1C1D24),
+                                border: Border.all(
+                                    color: isNext
+                                        ? AppColors.accentGreen
+                                            .withValues(alpha: 0.6)
+                                        : const Color(0xFF2E3040),
+                                    width: isNext ? 1.4 : 1),
+                              ),
+                              alignment: Alignment.center,
+                              child: Container(
+                                width: isNext
+                                    ? (ballSize * 0.22).clamp(5.0, 6.5)
+                                    : (ballSize * 0.18).clamp(4.0, 5.5),
+                                height: isNext
+                                    ? (ballSize * 0.22).clamp(5.0, 6.5)
+                                    : (ballSize * 0.18).clamp(4.0, 5.5),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: isNext
+                                      ? AppColors.accentGreen
+                                      : const Color(0xFF353749),
+                                ),
+                              ),
+                            );
+                          }
+                          final ball = visualBalls[i].trim().toUpperCase();
+                          final bg = _bgColorForBall(ball);
+                          final fontSize = ball.length > 1
+                              ? (ballSize * 0.30).clamp(7.5, 9.0)
+                              : (ballSize * 0.40).clamp(10.0, 12.5);
+                          return Container(
+                            width: ballSize,
+                            height: ballSize,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: bg,
+                              border: Border.all(color: bg, width: 1.2),
+                              boxShadow: [
+                                BoxShadow(
+                                    color: bg.withValues(alpha: 0.35),
+                                    blurRadius: 4)
+                              ],
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              ball,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: fontSize,
+                                fontWeight: FontWeight.w900,
                               ),
                             ),
                           );
-                        }
-                        final ball = visualBalls[i].trim().toUpperCase();
-                        final bg = _bgColorForBall(ball);
-                        return Container(
-                          width: 27,
-                          height: 27,
-                          margin: const EdgeInsets.only(right: 5),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: bg,
-                            border: Border.all(color: bg, width: 1.2),
-                            boxShadow: [
-                              BoxShadow(
-                                  color: bg.withValues(alpha: 0.35),
-                                  blurRadius: 4)
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            ball,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: ball.length > 1 ? 8 : 11,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
+                        }),
+                      );
+                    },
                   ),
                 ),
 
