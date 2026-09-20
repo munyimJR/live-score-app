@@ -22,10 +22,10 @@ void main() async {
     cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
 
-  // Auto-seed sample matches if collection is empty
-  await MatchService().autoSeedIfEmpty();
-
   runApp(const LiveScoreApp());
+
+  // Auto-seed sample matches in background if collection is empty
+  MatchService().autoSeedIfEmpty().catchError((_) {});
 }
 
 class LiveScoreApp extends StatelessWidget {

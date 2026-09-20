@@ -75,12 +75,15 @@ class MatchService {
   /// Checks if the matches collection is empty and seeds sample matches if so.
   Future<void> autoSeedIfEmpty() async {
     try {
-      final snapshot = await _matchesRef.limit(1).get();
+      final snapshot = await _matchesRef
+          .limit(1)
+          .get(const GetOptions(source: Source.serverAndCache))
+          .timeout(const Duration(seconds: 3));
       if (snapshot.docs.isEmpty) {
         await seedSampleMatches();
       }
-    } catch (e) {
-      // Gracefully handle initial offline / rules errors
+    } catch (_) {
+      // Gracefully handle offline or slow connections without crashing
     }
   }
 
