@@ -3,6 +3,7 @@ import '../models/match_model.dart';
 import '../services/match_service.dart';
 import '../theme/app_colors.dart';
 import '../utils/date_formatter.dart';
+import '../widgets/playing_eleven_widget.dart';
 import '../widgets/recent_balls_widget.dart';
 import '../widgets/section_header.dart';
 import '../widgets/status_chip.dart';
@@ -213,6 +214,28 @@ class MatchDetailsScreen extends StatelessWidget {
                       ],
                     ],
                   ),
+                ),
+                const SizedBox(height: 24),
+
+                // Playing XI Section Header
+                const SectionHeader(
+                  title: 'Playing XI',
+                  subtitle: 'Official team lineups & player roles',
+                ),
+                const SizedBox(height: 8),
+
+                // Playing XI Interactive Component
+                PlayingElevenWidget(
+                  teamAName: match.teamA,
+                  teamBName: match.teamB,
+                  teamALogoUrl: match.teamALogoUrl,
+                  teamBLogoUrl: match.teamBLogoUrl,
+                  teamAPlayers: match.teamAPlayers.isNotEmpty
+                      ? match.teamAPlayers
+                      : MatchService.getDefaultPlayingEleven(match.teamA),
+                  teamBPlayers: match.teamBPlayers.isNotEmpty
+                      ? match.teamBPlayers
+                      : MatchService.getDefaultPlayingEleven(match.teamB),
                 ),
                 const SizedBox(height: 24),
 

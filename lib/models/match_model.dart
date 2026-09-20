@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'player_model.dart';
 
 class MatchModel {
   final String id;
@@ -14,6 +15,8 @@ class MatchModel {
   final String oversA;
   final String oversB;
   final List<String> recentBalls;
+  final List<PlayerModel> teamAPlayers;
+  final List<PlayerModel> teamBPlayers;
 
   const MatchModel({
     required this.id,
@@ -29,14 +32,40 @@ class MatchModel {
     this.oversA = '',
     this.oversB = '',
     this.recentBalls = const [],
+    this.teamAPlayers = const [],
+    this.teamBPlayers = const [],
   });
 
   factory MatchModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
+
+    // Parse recent balls
     final recentRaw = data['recentBalls'];
     List<String> parsedRecentBalls = [];
     if (recentRaw is List) {
       parsedRecentBalls = recentRaw.map((e) => e.toString()).toList();
+    }
+
+    // Parse team A playing 11
+    final rawPlayersA = data['teamAPlayers'];
+    final List<PlayerModel> playersA = [];
+    if (rawPlayersA is List) {
+      for (final item in rawPlayersA) {
+        if (item is Map) {
+          playersA.add(PlayerModel.fromMap(Map<String, dynamic>.from(item)));
+        }
+      }
+    }
+
+    // Parse team B playing 11
+    final rawPlayersB = data['teamBPlayers'];
+    final List<PlayerModel> playersB = [];
+    if (rawPlayersB is List) {
+      for (final item in rawPlayersB) {
+        if (item is Map) {
+          playersB.add(PlayerModel.fromMap(Map<String, dynamic>.from(item)));
+        }
+      }
     }
 
     return MatchModel(
@@ -55,6 +84,8 @@ class MatchModel {
       oversA: data['oversA'] as String? ?? '',
       oversB: data['oversB'] as String? ?? '',
       recentBalls: parsedRecentBalls,
+      teamAPlayers: playersA,
+      teamBPlayers: playersB,
     );
   }
 
@@ -72,11 +103,12 @@ class MatchModel {
       'oversA': oversA,
       'oversB': oversB,
       'recentBalls': recentBalls,
+      'teamAPlayers': teamAPlayers.map((p) => p.toMap()).toList(),
+      'teamBPlayers': teamBPlayers.map((p) => p.toMap()).toList(),
     };
   }
 
   /// Parses cricket score string like "125/4" into runs and wickets integers.
-  /// Handles fallback/empty cases gracefully.
   static ({int runs, int wickets}) parseScore(String score) {
     final clean = score.trim();
     if (clean.isEmpty || clean == '-' || clean == '0') {

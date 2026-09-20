@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/match_model.dart';
+import '../models/player_model.dart';
 
 class MatchService {
   final FirebaseFirestore _firestore;
@@ -66,6 +67,112 @@ class MatchService {
     }
   }
 
+  /// Provides fallback standard playing 11 for known cricket teams.
+  static List<PlayerModel> getDefaultPlayingEleven(String teamName) {
+    final clean = teamName.toLowerCase().trim();
+
+    if (clean.contains('aus')) {
+      return const [
+        PlayerModel(name: 'David Warner', role: 'Batter'),
+        PlayerModel(name: 'Travis Head', role: 'Batter'),
+        PlayerModel(name: 'Mitchell Marsh', role: 'All-Rounder'),
+        PlayerModel(name: 'Steven Smith', role: 'Batter'),
+        PlayerModel(name: 'Marnus Labuschagne', role: 'Batter'),
+        PlayerModel(name: 'Glenn Maxwell', role: 'All-Rounder'),
+        PlayerModel(name: 'Josh Inglis', role: 'WK-Batter', isWicketKeeper: true),
+        PlayerModel(name: 'Pat Cummins', role: 'Bowler', isCaptain: true),
+        PlayerModel(name: 'Mitchell Starc', role: 'Bowler'),
+        PlayerModel(name: 'Adam Zampa', role: 'Bowler'),
+        PlayerModel(name: 'Josh Hazlewood', role: 'Bowler'),
+      ];
+    } else if (clean.contains('zealand') || clean.contains('nz')) {
+      return const [
+        PlayerModel(name: 'Devon Conway', role: 'Batter'),
+        PlayerModel(name: 'Will Young', role: 'Batter'),
+        PlayerModel(name: 'Rachin Ravindra', role: 'All-Rounder'),
+        PlayerModel(name: 'Kane Williamson', role: 'Batter', isCaptain: true),
+        PlayerModel(name: 'Daryl Mitchell', role: 'All-Rounder'),
+        PlayerModel(name: 'Tom Latham', role: 'WK-Batter', isWicketKeeper: true),
+        PlayerModel(name: 'Glenn Phillips', role: 'All-Rounder'),
+        PlayerModel(name: 'Mitchell Santner', role: 'All-Rounder'),
+        PlayerModel(name: 'Matt Henry', role: 'Bowler'),
+        PlayerModel(name: 'Tim Southee', role: 'Bowler'),
+        PlayerModel(name: 'Trent Boult', role: 'Bowler'),
+      ];
+    } else if (clean.contains('ind')) {
+      return const [
+        PlayerModel(name: 'Rohit Sharma', role: 'Batter', isCaptain: true),
+        PlayerModel(name: 'Shubman Gill', role: 'Batter'),
+        PlayerModel(name: 'Virat Kohli', role: 'Batter'),
+        PlayerModel(name: 'Shreyas Iyer', role: 'Batter'),
+        PlayerModel(name: 'KL Rahul', role: 'WK-Batter', isWicketKeeper: true),
+        PlayerModel(name: 'Hardik Pandya', role: 'All-Rounder'),
+        PlayerModel(name: 'Ravindra Jadeja', role: 'All-Rounder'),
+        PlayerModel(name: 'Kuldeep Yadav', role: 'Bowler'),
+        PlayerModel(name: 'Jasprit Bumrah', role: 'Bowler'),
+        PlayerModel(name: 'Mohammed Shami', role: 'Bowler'),
+        PlayerModel(name: 'Mohammed Siraj', role: 'Bowler'),
+      ];
+    } else if (clean.contains('eng')) {
+      return const [
+        PlayerModel(name: 'Jonny Bairstow', role: 'Batter'),
+        PlayerModel(name: 'Dawid Malan', role: 'Batter'),
+        PlayerModel(name: 'Joe Root', role: 'Batter'),
+        PlayerModel(name: 'Ben Stokes', role: 'All-Rounder'),
+        PlayerModel(name: 'Harry Brook', role: 'Batter'),
+        PlayerModel(name: 'Jos Buttler', role: 'WK-Batter', isCaptain: true, isWicketKeeper: true),
+        PlayerModel(name: 'Liam Livingstone', role: 'All-Rounder'),
+        PlayerModel(name: 'Chris Woakes', role: 'All-Rounder'),
+        PlayerModel(name: 'Adil Rashid', role: 'Bowler'),
+        PlayerModel(name: 'Mark Wood', role: 'Bowler'),
+        PlayerModel(name: 'Reece Topley', role: 'Bowler'),
+      ];
+    } else if (clean.contains('pak')) {
+      return const [
+        PlayerModel(name: 'Abdullah Shafique', role: 'Batter'),
+        PlayerModel(name: 'Fakhar Zaman', role: 'Batter'),
+        PlayerModel(name: 'Babar Azam', role: 'Batter', isCaptain: true),
+        PlayerModel(name: 'Mohammad Rizwan', role: 'WK-Batter', isWicketKeeper: true),
+        PlayerModel(name: 'Saud Shakeel', role: 'Batter'),
+        PlayerModel(name: 'Iftikhar Ahmed', role: 'All-Rounder'),
+        PlayerModel(name: 'Shadab Khan', role: 'All-Rounder'),
+        PlayerModel(name: 'Mohammad Nawaz', role: 'All-Rounder'),
+        PlayerModel(name: 'Shaheen Afridi', role: 'Bowler'),
+        PlayerModel(name: 'Haris Rauf', role: 'Bowler'),
+        PlayerModel(name: 'Naseem Shah', role: 'Bowler'),
+      ];
+    } else if (clean.contains('africa')) {
+      return const [
+        PlayerModel(name: 'Quinton de Kock', role: 'WK-Batter', isWicketKeeper: true),
+        PlayerModel(name: 'Temba Bavuma', role: 'Batter', isCaptain: true),
+        PlayerModel(name: 'Rassie van der Dussen', role: 'Batter'),
+        PlayerModel(name: 'Aiden Markram', role: 'All-Rounder'),
+        PlayerModel(name: 'Heinrich Klaasen', role: 'Batter'),
+        PlayerModel(name: 'David Miller', role: 'Batter'),
+        PlayerModel(name: 'Marco Jansen', role: 'All-Rounder'),
+        PlayerModel(name: 'Gerald Coetzee', role: 'Bowler'),
+        PlayerModel(name: 'Keshav Maharaj', role: 'Bowler'),
+        PlayerModel(name: 'Kagiso Rabada', role: 'Bowler'),
+        PlayerModel(name: 'Lungi Ngidi', role: 'Bowler'),
+      ];
+    }
+
+    // Default template for any other team
+    return List.generate(11, (i) {
+      if (i == 0) return PlayerModel(name: '$teamName Opener 1', role: 'Batter');
+      if (i == 1) return PlayerModel(name: '$teamName Opener 2', role: 'Batter');
+      if (i == 2) return PlayerModel(name: '$teamName Captain', role: 'Batter', isCaptain: true);
+      if (i == 3) return PlayerModel(name: '$teamName Batter', role: 'Batter');
+      if (i == 4) return PlayerModel(name: '$teamName Keeper', role: 'WK-Batter', isWicketKeeper: true);
+      if (i == 5) return PlayerModel(name: '$teamName All-Rounder 1', role: 'All-Rounder');
+      if (i == 6) return PlayerModel(name: '$teamName All-Rounder 2', role: 'All-Rounder');
+      if (i == 7) return PlayerModel(name: '$teamName Spinner', role: 'Bowler');
+      if (i == 8) return PlayerModel(name: '$teamName Pacer 1', role: 'Bowler');
+      if (i == 9) return PlayerModel(name: '$teamName Pacer 2', role: 'Bowler');
+      return PlayerModel(name: '$teamName Strike Bowler', role: 'Bowler');
+    });
+  }
+
   /// Seeds 6 diverse cricket matches with all 3 statuses and fallback logo test cases.
   Future<void> seedSampleMatches() async {
     final now = DateTime.now();
@@ -82,6 +189,8 @@ class MatchService {
         'oversB': '22.1',
         'status': 'Live',
         'recentBalls': ['4', '1', '6', 'W', '2', '1'],
+        'teamAPlayers': getDefaultPlayingEleven('Australia').map((p) => p.toMap()).toList(),
+        'teamBPlayers': getDefaultPlayingEleven('New Zealand').map((p) => p.toMap()).toList(),
         'matchDate': Timestamp.fromDate(now.subtract(const Duration(minutes: 35))),
         'venue': 'Sydney Cricket Ground, Sydney',
       },
@@ -96,6 +205,8 @@ class MatchService {
         'oversB': '18.2',
         'status': 'Live',
         'recentBalls': ['1', '4', '0', '6', '1', '2'],
+        'teamAPlayers': getDefaultPlayingEleven('India').map((p) => p.toMap()).toList(),
+        'teamBPlayers': getDefaultPlayingEleven('England').map((p) => p.toMap()).toList(),
         'matchDate': Timestamp.fromDate(now.subtract(const Duration(hours: 1))),
         'venue': 'Melbourne Cricket Ground, Melbourne',
       },
@@ -110,6 +221,8 @@ class MatchService {
         'oversB': '0.0',
         'status': 'Upcoming',
         'recentBalls': <String>[],
+        'teamAPlayers': getDefaultPlayingEleven('Pakistan').map((p) => p.toMap()).toList(),
+        'teamBPlayers': getDefaultPlayingEleven('South Africa').map((p) => p.toMap()).toList(),
         'matchDate': Timestamp.fromDate(now.add(const Duration(hours: 4))),
         'venue': 'Eden Park, Auckland',
       },
@@ -124,6 +237,8 @@ class MatchService {
         'oversB': '0.0',
         'status': 'Upcoming',
         'recentBalls': <String>[],
+        'teamAPlayers': getDefaultPlayingEleven('West Indies').map((p) => p.toMap()).toList(),
+        'teamBPlayers': getDefaultPlayingEleven('Sri Lanka').map((p) => p.toMap()).toList(),
         'matchDate': Timestamp.fromDate(now.add(const Duration(days: 1))),
         'venue': 'Kensington Oval, Bridgetown',
       },
@@ -138,6 +253,8 @@ class MatchService {
         'oversB': '48.2',
         'status': 'Finished',
         'recentBalls': ['1', 'W', '4', '0', '1', 'W'],
+        'teamAPlayers': getDefaultPlayingEleven('Bangladesh').map((p) => p.toMap()).toList(),
+        'teamBPlayers': getDefaultPlayingEleven('Afghanistan').map((p) => p.toMap()).toList(),
         'matchDate': Timestamp.fromDate(now.subtract(const Duration(days: 1))),
         'venue': 'Sher-e-Bangla Stadium, Dhaka',
       },
@@ -152,6 +269,8 @@ class MatchService {
         'oversB': '19.4',
         'status': 'Finished',
         'recentBalls': ['4', '6', '1', '4', '2', '6'],
+        'teamAPlayers': getDefaultPlayingEleven('Gujarat Titans').map((p) => p.toMap()).toList(),
+        'teamBPlayers': getDefaultPlayingEleven('Chennai Super Kings').map((p) => p.toMap()).toList(),
         'matchDate': Timestamp.fromDate(now.subtract(const Duration(days: 2))),
         'venue': 'Narendra Modi Stadium, Ahmedabad',
       },
